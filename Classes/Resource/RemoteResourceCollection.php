@@ -17,6 +17,7 @@ namespace IchHabRecht\Filefill\Resource;
  * LICENSE file that was distributed with this source code.
  */
 
+use Doctrine\DBAL\ParameterType;
 use IchHabRecht\Filefill\Exception\MissingInterfaceException;
 use IchHabRecht\Filefill\Exception\UnknownResourceException;
 use IchHabRecht\Filefill\Repository\FileRepository;
@@ -149,9 +150,9 @@ class RemoteResourceCollection implements LoggerAwareInterface
             static::$fileIdentifierCache[$filePath] = null;
             $localPath = $filePath;
             $storage = $this->resourceFactory->getStorageObject(0, [], $localPath);
-            if ($storage->getUid() !== 0) {
+//            if ($storage->getUid() !== 0) {
                 static::$fileIdentifierCache[$filePath] = $this->getFileObjectFromStorage($storage, $fileIdentifier);
-            }
+//            }
         }
 
         return static::$fileIdentifierCache[$filePath] instanceof ProcessedFile
@@ -181,15 +182,15 @@ class RemoteResourceCollection implements LoggerAwareInterface
                 ->where(
                     $expressionBuilder->eq(
                         'storage',
-                        $queryBuilder->createNamedParameter((int)$storage->getUid(), \PDO::PARAM_INT)
+                        $queryBuilder->createNamedParameter((int)$storage->getUid(), ParameterType::INTEGER)
                     ),
                     $expressionBuilder->eq(
                         'identifier',
-                        $queryBuilder->createNamedParameter($fileIdentifier, \PDO::PARAM_STR)
+                        $queryBuilder->createNamedParameter($fileIdentifier, ParameterType::STRING)
                     )
                 )
-                ->execute()
-                ->fetch(\PDO::FETCH_ASSOC);
+                ->executeQuery()
+                ->fetchAssociative();
             if (empty($databaseRow)) {
                 return null;
             }
